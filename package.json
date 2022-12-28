@@ -1,0 +1,17 @@
+{
+  "name": "yaadpay",
+  "version": "0.0.1",
+  "description": "API wrapper for YaadPay by Hyp",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Michoel Samuels",
+  "license": "MIT",
+  "dependencies": {
+    "query-string": "^8.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.3.1"
+  }
+}
