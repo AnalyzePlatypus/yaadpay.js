@@ -1,5 +1,5 @@
 {
-  "name": "yaadpay",
+  "name": "yaadpay.js",
   "version": "0.0.1",
   "description": "API wrapper for YaadPay by Hyp",
   "main": "index.js",
