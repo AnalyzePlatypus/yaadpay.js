@@ -62,7 +62,7 @@ describe('Signing URls', () => {
 				passp: "yaad"
 			});	
 		
-		const urlToSign = await yaad.buildSignRequestUrl({
+		const urlToSign = await yaad.buildSignedRequestUrl({
 				KEY: "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
 				PassP: "yaad",
 				Masof: "0010131918",
@@ -112,7 +112,7 @@ describe('Signing URls', () => {
 				passp: "yaad"
 			});	
 		
-		const actualUrl = await yaad.buildSignRequestUrl(SIGN_REQUEST_PARAMS)
+		const actualUrl = await yaad.buildSignedRequestUrl(SIGN_REQUEST_PARAMS)
 	
 				
 		expect(actualUrl).toEqual(expectedUrl)
@@ -131,7 +131,7 @@ describe('Signing URls', () => {
 		expect(actualSignedUrl).toBe(expectedSignedUrl);
 	})
 	
-	test('Should throw any Yaad errors', async () => {
+	test('Should extract any Yaad errors from HTML', async () => {
 		const yaad = createYaadPay({
 			apiKey: 'blah blah blah',
 			masofId: 'phil',
@@ -146,6 +146,25 @@ describe('Signing URls', () => {
 		}
 		
 		expect(errorMessage).toMatch(/Masof Error$/);
+	})
+	
+	test('Should throw Yaad CCode errors with translation', async () => {
+		const yaad = createYaadPay({
+			apiKey: process.env.YAADPAY__API_KEY,
+			masofId: process.env.YAADPAY__MASOF_ID,
+			passp: process.env.YAADPAY__PASSP
+		});	
+		
+		let errorMessage;
+		try {
+			await yaad._networkRequest({url: 'https://icom.yaad.net/p/?action=APISign&What=SIGN&Masof=4501335024'});
+		} catch (error) {
+			errorMessage = error.message;
+		}
+		
+		const expectedError = '❗ Got Yaadpay API Error: CCode 902 - Authentication error. Your Masof, API key, or PassP is incorrect.'
+		
+		expect(errorMessage).toBe(expectedError);
 	})
 	
 });

@@ -1,5 +1,6 @@
 const fetch = require('isomorphic-fetch');
 
+const { YAAD_ERRORS } = require('./errorCodes');
 
 const API_URL_BASE = "https://icom.yaad.net/p/"
 
@@ -35,12 +36,12 @@ function createYaadPay({ apiKey, masofId, passp }) {
 		},
 		
 		async signUrl(params) {
-			const url = this.buildSignRequestUrl(params);
-			const signedUrlFragment =  await this.networkRequest({ url, method: 'GET' }); 
+			const url = this.buildSignedRequestUrl(params);
+			const signedUrlFragment =  await this._networkRequest({ url, method: 'GET' }); 
 			return 'https://icom.yaad.net/p/?action=pay&' + signedUrlFragment;
 		},
 		
-		buildSignRequestUrl(params) {
+		buildSignedRequestUrl(params) {
 			return this.buildUrl({
 				action: ACTIONS.APISign,
 				what: WHAT.SIGN,
@@ -63,7 +64,7 @@ function createYaadPay({ apiKey, masofId, passp }) {
 			return url;
 		},
 		
-		async networkRequest({ url, method }) {
+		async _networkRequest({ url, method = 'GET' }) {
 			console.log(`🛫 Fetching URL: ${url}`);
 			
 			const response =  await fetch(url, { method })
@@ -75,6 +76,15 @@ function createYaadPay({ apiKey, masofId, passp }) {
 			}
 			
 			const text = await response.text();
+			console.log(text);
+			
+			const HAS_CCODE_ERROR__REGEX = /CCode=/
+			
+			if(text.match(HAS_CCODE_ERROR__REGEX)) {
+				const errorCode = text?.replace(/CCode=/, '')?.trim()
+				
+				throw new Error(`❗ Got Yaadpay API Error: CCode ${errorCode} - ${YAAD_ERRORS[errorCode]}`)
+			}
 			
 			if(text.includes(YAAD_ERROR_HTML_IMAGE_TAG)) {
 				const markerText = '<p><font face="arial" size="3" color="#3F3F3F">'
