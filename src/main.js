@@ -1,7 +1,7 @@
+const fetch = require('isomorphic-fetch');
 
 
-
-const API_URL_BASE = "https://icom.yaad.net/p/?"
+const API_URL_BASE = "https://icom.yaad.net/p/"
 
 const ACTIONS = {
 	"APISign": "APISign",
@@ -17,26 +17,73 @@ const WHAT = {
 	'SIGN': 'SIGN'
 }
 
-"action=APISign&What=VERIFY&KEY=7110eda4d09e062aa5e4a390b0a572ac0d2c0220&PassP=yaad&Masof=0010131918&"
+const HTTP_STATUS = {
+	SUCCESS: 200
+}
+
+const YAAD_ERROR_HTML_IMAGE_TAG = '<img src="/yaadpay/6.0/Images/failMark.png">'
 
 function createYaadPay({ apiKey, masofId, passp }) {
+	
 	return {
-		credentials: {
-			apiKey,
-			masofId,
-			passp
+		credentials() {
+			return {
+				KEY: apiKey,
+				PassP: passp,
+				Masof: masofId,
+			}
 		},
 		
-		async signRequest(params) {
-			const requestParamStr = ""
-			const url = `
-				${this.buildBasicUrl()}&action=${ACTIONS.APISign}&What=${WHAT.SIGN}&${requestParamStr}
-			`;
+		async signUrl(params) {
+			const url = this.buildSignRequestUrl(params);
+			const signedUrlFragment =  await this.networkRequest({ url, method: 'GET' }); 
+			return 'https://icom.yaad.net/p/?action=pay&' + signedUrlFragment;
+		},
+		
+		buildSignRequestUrl(params) {
+			return this.buildUrl({
+				action: ACTIONS.APISign,
+				what: WHAT.SIGN,
+				params,
+			})
+		},
+		
+		buildUrl({ action, what, params }) {
+			const urlSearchParams = new URLSearchParams({
+				action,
+				What: what,
+				...params,
+				...this.credentials()
+			});
+							
+			const url = `${ API_URL_BASE }?${ urlSearchParams.toString() }`.
+				replaceAll('true', 'True').
+				replaceAll('false', 'False');
+			
 			return url;
 		},
 		
-		buildBasicUrl() {
-			return `${API_URL_BASE}&KEY=${apiKey}&PassP=${passp}&Masof=${masofId}`;
+		async networkRequest({ url, method }) {
+			console.log(`🛫 Fetching URL: ${url}`);
+			
+			const response =  await fetch(url, { method })
+			
+			console.log(`🛬 Fetch complete: ${response.status}`);
+			
+			if(response.status !== HTTP_STATUS.SUCCESS) {
+				throw new Error(`Got non-OK HTTP response ${response.status}`)
+			}
+			
+			const text = await response.text();
+			
+			if(text.includes(YAAD_ERROR_HTML_IMAGE_TAG)) {
+				const markerText = '<p><font face="arial" size="3" color="#3F3F3F">'
+				const errorStrOffset = text.indexOf(markerText) + markerText.length
+				const errorMessage = text.substring(errorStrOffset).replace('</font></p></td></tr></table>', '');
+				
+				throw new Error(`❗ Got Yaadpay API Error:  ${errorMessage}`)
+			}
+			return text;
 		}
 	}
 }

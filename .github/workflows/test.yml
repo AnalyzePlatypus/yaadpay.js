@@ -9,3 +9,7 @@ jobs:
       run: npm i
     - name: Run tests
       run: npm test
+    env:
+      YAADPAY__API_KEY: ${{ secrets.YAADPAY__API_KEY }}
+      YAADPAY__MASOF_ID: ${{ secrets.YAADPAY__MASOF_ID }}
+      YAADPAY__PASSP: ${{ secrets.YAADPAY__PASSP }}

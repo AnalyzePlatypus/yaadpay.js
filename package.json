@@ -9,6 +9,8 @@
   "author": "Michoel Samuels",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^16.0.3",
+    "isomorphic-fetch": "^3.0.0",
     "query-string": "^8.1.0"
   },
   "devDependencies": {
