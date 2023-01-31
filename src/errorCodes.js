@@ -2,7 +2,8 @@
 // I translated and improved the error messages
 // (I hope 😬)
 
-const YAAD_ERRORS = {
+const YAAD_RESPONSE_CODES = {
+	"0": "Success!",
 	"400":	"Amount of Items (Hebrew: pritim) is mismatched with the transaction amount. (Invoice module)",
   "401":	"Missing first or last name. (The ClientName or ClientLName parameters are empty)",
 	"402":	"Missing 'Info' parameter",
@@ -19,4 +20,4 @@ const YAAD_ERRORS = {
 	"999":	"Internal comunication error in YaadPay.",
 }
 
-exports.YAAD_ERRORS = YAAD_ERRORS;
+exports.YAAD_RESPONSE_CODES = YAAD_RESPONSE_CODES;

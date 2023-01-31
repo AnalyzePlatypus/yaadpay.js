@@ -131,6 +131,55 @@ describe('Signing URls', () => {
 		expect(actualSignedUrl).toBe(expectedSignedUrl);
 	})
 	
+	describe('success verification', () => {
+		test('Generates the verify URL', async () => {
+			const yaad = createYaadPay({
+				apiKey: process.env.YAADPAY__API_KEY,
+				masofId: process.env.YAADPAY__MASOF_ID,
+				passp: process.env.YAADPAY__PASSP
+			});	
+			
+			const inputUrl = 'https://icom.yaad.net/yaadpay/tmp/apitest/yaadsuccesspagedemo.htm?Id=12788261&CCode=0&Amount=10&ACode=0012345&Order=12345678910&Fild1=Israel%20Isareli&Fild2=test%40yaad.net&Fild3=&Sign=13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6&Bank=6&Payments=1&UserId=203269535&Brand=2&Issuer=2&L4digit=0000&street=levanon%203&city=netanya&zip=42361&cell=098610338&Coin=1&Tmonth=03&Tyear=2023&errMsg=%20(0)&Hesh=31';
+			
+			const expectedUrl = 'https://icom.yaad.net/p/?action=APISign&What=VERIFY&Id=12788261&CCode=0&Amount=10&ACode=0012345&Order=12345678910&Fild1=Israel+Isareli&Fild2=test%40yaad.net&Fild3=&Sign=13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6&Bank=6&Payments=1&UserId=203269535&Brand=2&Issuer=2&L4digit=0000&street=levanon+3&city=netanya&zip=42361&cell=098610338&Coin=1&Tmonth=03&Tyear=2023&errMsg=+%280%29&Hesh=31&KEY=7110eda4d09e062aa5e4a390b0a572ac0d2c0220&PassP=yaad&Masof=0010131918';
+			const actualUrl = await yaad.buildVerifyTransactionSuccessUrl({ yaadSuccessURL: inputUrl });
+			
+			expect(actualUrl).toBe(expectedUrl);
+		})
+		
+		test('Succeeds on a good success URL from the server', async () => {
+			const yaad = createYaadPay({
+				apiKey: process.env.YAADPAY__API_KEY,
+				masofId: process.env.YAADPAY__MASOF_ID,
+				passp: process.env.YAADPAY__PASSP
+			});	
+			
+			const inputUrl = 'https://icom.yaad.net/yaadpay/tmp/apitest/yaadsuccesspagedemo.htm?Id=12788261&CCode=0&Amount=10&ACode=0012345&Order=12345678910&Fild1=Israel%20Isareli&Fild2=test%40yaad.net&Fild3=&Sign=13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6&Bank=6&Payments=1&UserId=203269535&Brand=2&Issuer=2&L4digit=0000&street=levanon%203&city=netanya&zip=42361&cell=098610338&Coin=1&Tmonth=03&Tyear=2023&errMsg=%20(0)&Hesh=31';
+			const didSucceed = await yaad.verifyTransactionSuccess({ yaadSuccessURL: inputUrl });
+			
+			expect(didSucceed).toBe(true);
+		})
+		
+		test('Fails on a bad success URL from the server', async () => {
+			const yaad = createYaadPay({
+				apiKey: process.env.YAADPAY__API_KEY,
+				masofId: process.env.YAADPAY__MASOF_ID,
+				passp: process.env.YAADPAY__PASSP
+			});	
+			
+			const inputUrl = 'https://icom.yaad.net/yaadpay/tmp/apitest/yaadsuccesspagedemo.htm?Id=1_2788261&CCode=0&Amount=10&ACode=0012345&Order=12345678910&Fild1=Israel%20Isareli&Fild2=test%40yaad.net&Fild3=&Sign=13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6&Bank=6&Payments=1&UserId=203269535&Brand=2&Issuer=2&L4digit=0000&street=levanon%203&city=netanya&zip=42361&cell=098610338&Coin=1&Tmonth=03&Tyear=2023&errMsg=%20(0)&Hesh=31';
+			
+			let error;
+			try {
+				await yaad.verifyTransactionSuccess({ yaadSuccessURL: inputUrl });
+			} catch(e) {
+				error = e;
+			}
+			
+			expect(error.message).toBe('❗ Got Yaadpay API Error: CCode 200 - (unknown error)');
+		})
+	})
+	
 	test('Should extract any Yaad errors from HTML', async () => {
 		const yaad = createYaadPay({
 			apiKey: 'blah blah blah',
