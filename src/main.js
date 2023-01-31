@@ -26,6 +26,92 @@ const CCODE_SUCCESS = "CCODE_SUCCESS"
 
 const YAAD_ERROR_HTML_IMAGE_TAG = '<img src="/yaadpay/6.0/Images/failMark.png">'
 
+const CARD_PROCESSOR_CODES = {
+	"1": "Isracard",
+	"2": "Visa Cal",
+	"3": "Diners",
+	"4": "Amex",
+	"6": "Leumi Card"
+}
+
+const CARD_NETWORK_CODES = {
+	"0": "PL",
+	"1": "MasterCard",
+	"2": "Visa",
+	"3": "Maestro",
+	"5": "Isracard"
+}
+
+const CARD_ISSUER_CODES = {
+	"1": "Isracard",
+	"2": "Visa Cal",
+	"3": "Diners",
+	"4": "Amex",
+	"5": "JCB or Leumi Card"
+}
+
+const CURRENCY_CODES = {
+	"1": "ILS",
+	"2": "USD",
+	'3': "EUR",
+	"4": "GBP"
+}
+
+
+const SUCCESS_DETAILS_USER_FRIENDLY_KEY_MAP = {
+   "ACode": "creditCardConfirmationCode",
+   "Amount": "transactionAmount",
+   "Bank": "cardProcessor",
+   "Brand": "cardNetwork",
+   "CCode": "yaadCCode",
+   "Coin": "currencyCode",
+   "Fild1": "fullName",
+   "Fild2": "email",
+   "Fild3": "phone",
+   "Hesh": "invoiceNumber",
+   "Id": "transactionId",
+   "Issuer": "creditCardIssuer",
+   "L4digit": "lastFourDigits",
+   "Order": "orderId",
+   "Payments": "paymentCount",
+   "Sign": "signature",
+   "Tmonth": "cardExpiryMonth",
+   "Tyear": "cardExpiryYear",
+   "UserId": "userId",
+   "cell": "cellPhoneNumber",
+   "errMsg": "errorMessage",
+	 "city": "addressCity",
+   "street": "addressStreet",
+   "zip": "addressZip",
+}
+
+function translateTransactionSuccessObjectKeys(obj) {
+	let translated =  translateObjectKeys({ obj, keyMap: SUCCESS_DETAILS_USER_FRIENDLY_KEY_MAP });
+	
+	translated.cardProcessor = CARD_PROCESSOR_CODES[translated.cardProcessor];
+	translated.creditCardIssuer = CARD_ISSUER_CODES[translated.creditCardIssuer];
+	translated.cardNetwork = CARD_NETWORK_CODES[translated.cardNetwork];
+	translated.currencyCode = CURRENCY_CODES[translated.currencyCode];
+	translated.humanReadable = {
+		amount: `${translated.transactionAmount} ${translated.currencyCode}`,
+		amountWithPaymentCount: `${translated.transactionAmount} ${translated.currencyCode} in ${translated.paymentCount} payment${ translated.paymentCount > 1 ? 's' : ''}`,
+		paymentMethod: `${translated.creditCardIssuer} card ending in ${translated.lastFourDigits}`
+	}
+	
+	return translated;
+}
+
+function translateObjectKeys({ obj, keyMap }) {
+	return Object.fromEntries(
+		Object.entries(obj).map(([k,v]) => {			
+			return [
+				(keyMap[k] || k),
+				v
+			];
+		})
+	)
+} 
+
 function createYaadPay({ apiKey, masofId, passp }) {
 	
 	return {
@@ -49,10 +135,19 @@ function createYaadPay({ apiKey, masofId, passp }) {
 			const response =  await this._networkRequest({ url, method: 'GET' }); 
 			if(response == CCODE_SUCCESS) {
 				console.log('✅  Transaction success confirmed');
-				return true;
+				
+				const params = Object.fromEntries(new URL(yaadSuccessURL).searchParams);
+				
+				
+				return {
+					success: true,
+					...translateTransactionSuccessObjectKeys(params)
+				};
 			}
 			console.log('❗ Transaction failed!');
-			return false;
+			return {
+				success: false
+			};
 		},
 		
 		buildVerifyTransactionSuccessUrl({ yaadSuccessURL }) {

@@ -92,9 +92,56 @@ const inputUrl = "****" // Success redirect URL from YaadPay after checkout succ
 await yaad.verifyTransactionSuccess({ yaadSuccessURL: inputUrl });
 ```
 
+### Examples of improved DX
+
+When verifying a payment, instead of getting:
+
+```
+https://icom.yaad.net/yaadpay/tmp/apitest/yaadsuccesspagedemo.htm?Id=12788261&CCode=0&Amount=10&ACode=0012345&Order=12345678910&Fild1=Israel%20Isareli&Fild2=test%40yaad.net&Fild3=&Sign=13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6&Bank=6&Payments=1&UserId=203269535&Brand=2&Issuer=2&L4digit=0000&street=levanon%203&city=netanya&zip=42361&cell=098610338&Coin=1&Tmonth=03&Tyear=2023&errMsg=%20(0)&Hesh=31
+```
+
+You get:
+```json
+	{
+ 	"transactionId": "123",
+ 	"addressCity": "netanya",
+ 	"addressStreet": "levanon 3",
+ 	"addressZip": "42361",
+ 	"cardExpiryMonth": "03",
+ 	"cardExpiryYear": "2023",
+ 	"cardNetwork": "Visa",
+ 	"cardProcessor": "Leumi Card",
+ 	"cellPhoneNumber": "098610338",
+ 	"creditCardConfirmationCode": "0012345",
+ 	"creditCardIssuer": "Visa Cal",
+ 	"currencyCode": "ILS",
+ 	"email": "test@yaad.net",
+ 	"errorMessage": " (0)",
+ 	"fullName": "Israel Isareli",
+ 	"invoiceNumber": "31",
+ 	"lastFourDigits": "0000",
+ 	"orderId": "12345678910",
+ 	"paymentCount": "1",
+ 	"phone": "",
+ 	"signature": "13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6",
+ 	"transactionAmount": "10",
+ 	"transactionId": "12788261",
+ 	"userId": "203269535",
+ 	"yaadCCode": "0",
+ 	"humanReadable": {
+	 	"amount": "10 ILS",
+	 	"amountWithPaymentCount": "10 ILS in 1 payment",
+	 	"paymentMethod": "Visa Cal card ending in 0000",
+ 	},
+ 	"success": true,
+}
+```
+
+Ahh...
+
 ## To-do
 
-- [x] Verify payment
+- [x] Verify payments
 - [ ] 429 retry with binexp backoff 
 
 ## Legal
