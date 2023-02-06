@@ -95,8 +95,10 @@ function translateTransactionSuccessObjectKeys(obj) {
 	translated.humanReadable = {
 		amount: `${translated.transactionAmount} ${translated.currencyCode}`,
 		amountWithPaymentCount: `${translated.transactionAmount} ${translated.currencyCode} in ${translated.paymentCount} payment${ translated.paymentCount > 1 ? 's' : ''}`,
-		paymentMethod: `${translated.creditCardIssuer} card ending in ${translated.lastFourDigits}`
+		paymentMethod: `${translated.creditCardIssuer || ''} ${translated.cardNetwork || ''} card ending in ${translated.lastFourDigits}`
 	}
+	
+	translated._raw = obj;
 	
 	return translated;
 }
