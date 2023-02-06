@@ -71,7 +71,11 @@ let params = {
 	// Other
 	Postpone: false,
 	J5: false, 
-	Sign: true, // Append a cryptographic signature to the URL so it can be verified by Yaad's servers. Required by default, can be disabled on their dashboard
+	
+	// Append a cryptographic signature to the URL so it can be verified by Yaad's servers. Defaults to false, can be disabled on their dashboard
+	// NOTE: you MUST set this to true if you'd like to verify the payment success later (see `verifyTransactionSuccess`)
+	Sign: true, 
+	
 	MoreData: true,
 	sendemail: true,
 	SendHesh: true, // Send the customer an email receipt
@@ -85,11 +89,77 @@ const signedPaymentUrl = await yaad.signUrl(params);
 
 ### Verify a transaction
 
+> IMPORTANT NOTE: For verification to work, you MUST have included the `Sign=true` parameter when first creating your payment link
+
 ```js
 const inputUrl = "****" // Success redirect URL from YaadPay after checkout success;
 
-// Returns true on success, throws with error on failure
+// Returns an object with patyment details on success, throws with error on failure
 await yaad.verifyTransactionSuccess({ yaadSuccessURL: inputUrl });
+```
+
+Example response to a successsful payment:
+```json
+{
+	"success": true,
+	
+ "transactionId": "123",
+ "addressCity": "netanya",
+ "addressStreet": "levanon 3",
+ "addressZip": "42361",
+ "cardExpiryMonth": "03",
+ "cardExpiryYear": "2023",
+ "cardNetwork": "Visa",
+ "cardProcessor": "Leumi Card",
+ "cellPhoneNumber": "098610338",
+ "creditCardConfirmationCode": "0012345",
+ "creditCardIssuer": "Visa Cal",
+ "currencyCode": "ILS",
+ "email": "test@yaad.net",
+ "errorMessage": " (0)",
+ "fullName": "Israel Isareli",
+ "invoiceNumber": "31",
+ "lastFourDigits": "0000",
+ "orderId": "12345678910",
+ "paymentCount": "1",
+ "phone": "",
+ "signature": "13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6",
+ "transactionAmount": "10",
+ "transactionId": "12788261",
+ "userId": "203269535",
+ "yaadCCode": "0",
+ "humanReadable": {
+	 "amount": "10 ILS",
+	 "amountWithPaymentCount": "10 ILS in 1 payment",
+	 "paymentMethod": "Visa Cal Visa card ending in 0000",
+ },
+ "_raw": {
+		"ACode": "0012345",
+		"Amount": "10",
+		"Bank": "6",
+		"Brand": "2",
+		"CCode": "0",
+		"Coin": "1",
+		"Fild1": "Israel Isareli",
+		"Fild2": "test@yaad.net",
+		"Fild3": "",
+		"Hesh": "31",
+		"Id": "12788261",
+		"Issuer": "2",
+		"L4digit": "0000",
+		"Order": "12345678910",
+		"Payments": "1",
+		"Sign": "13cccf141e2fc2e2dd8d8201a90d58929514d97e00084cb9436cab087f1ba8c6",
+		"Tmonth": "03",
+		"Tyear": "2023",
+		"UserId": "203269535",
+		"cell": "098610338",
+		"city": "netanya",
+		"errMsg": " (0)",
+		"street": "levanon 3",
+		"zip": "42361",
+	},
+}
 ```
 
 ### Examples of improved DX
@@ -133,7 +203,7 @@ You get:
 	 	"amountWithPaymentCount": "10 ILS in 1 payment",
 	 	"paymentMethod": "Visa Cal card ending in 0000",
  	},
- 	"success": true,
+	 _raw: { /* actual parsed data from the success URL */ }
 }
 ```
 
